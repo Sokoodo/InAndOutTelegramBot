@@ -3,18 +3,14 @@
 # This is a simple echo bot using the decorator mechanism.
 # It echoes any incoming text messages.
 from oauth2client.service_account import ServiceAccountCredentials
-# from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton, Message
 import gspread
-# import json
 import telebot
 from datetime import datetime
 
-# from telebot import types
-
-API_TOKEN = 'Your Telebot Token'
+API_TOKEN = 'Your Token'
 bot = telebot.TeleBot(API_TOKEN)
 user = bot.get_me()
-TelegramUsers = ['Your UserID (INTEGER)']
+TelegramUsers = ['Your UserID']
 
 scopes = [
     'https://www.googleapis.com/auth/spreadsheets',
@@ -22,7 +18,7 @@ scopes = [
 ]
 credentials = ServiceAccountCredentials.from_json_keyfile_name('client_secret.json', scopes)
 client = gspread.authorize(credentials)
-sheet = client.open("Income and Expense Tracker").sheet1
+sheet = client.open("Income and Expense Tracker")
 
 record_dict = {}
 months_dict = {"01": "Jan", "02": "Feb", "03": "Mar", "04": "Apr", "05": "May", "06": "Jun", "07": "Jul", "08": "Aug",
@@ -171,9 +167,8 @@ def update_sheet(message):
 @bot.message_handler(commands=['help', 'start'])
 def send_welcome(message):
     if UserCheck(message):
-        bot.reply_to(message, "Welcome {}".format(message.from_user.first_name) + """\n
-        I am here to keep track of your income and expenses. Use the command /add to upload a record!\
-        """)
+        bot.reply_to(message, "Welcome {}".format(message.from_user.first_name) +
+                     "\nI am here to keep track of your income and expenses. Use the command /add to upload a record!")
     else:
         pass
 
@@ -189,11 +184,6 @@ def add_record(message):
         pass
 
 
-# def kill_bot(message):
-#     bot.reply_to(message, """\
-# See you soon!\
-# """)
-
 # Handle all other messages with content_type 'text' (content_types defaults to ['text'])
 @bot.message_handler(func=lambda message: True)
 def echo_message(message):
@@ -203,7 +193,10 @@ def echo_message(message):
     elif message.text == 'fine':
         bot.reply_to(message, 'Nice, me too!')
     else:
-        bot.reply_to(message, 'I don\'t know what to do, send another command please.')
+        bot.reply_to(message, 'I don\'t know what to do, try with /help or /add.')
+
+
+# ToDo removeLastLine()
 
 
 bot.infinity_polling()
