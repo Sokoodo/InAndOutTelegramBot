@@ -11,10 +11,10 @@ from datetime import datetime
 
 # from telebot import types
 
-API_TOKEN = '5553891118:AAGaV6wLx6JmPQmh7q9oi62bMj3d3EbM0Ek'
+API_TOKEN = 'Your Telebot Token'
 bot = telebot.TeleBot(API_TOKEN)
 user = bot.get_me()
-TelegramUsers = [427863788]
+TelegramUsers = ['Your UserID (INTEGER)']
 
 scopes = [
     'https://www.googleapis.com/auth/spreadsheets',
@@ -42,16 +42,16 @@ def get_inout(message):
 
     if inout.lower() == 'out':
         start_markup = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
-        start_markup.row('Food', 'Living Essentials', 'Health/Medical')
-        start_markup.row('Groceries', 'Transportation', 'Personal', 'Toiletries')
-        start_markup.row('Entertainment/Social', 'Utilities', 'Travel', 'Gifts')
+        start_markup.row('Groceries', 'Restaurants', 'Outs', 'Gifts')
+        start_markup.row('Subscriptions', 'HairDresser', 'UniTax', 'Clothing')
+        start_markup.row('Travel', 'Transportation', 'Others')
         sent = bot.send_message(message.chat.id, "Choose a category", reply_markup=start_markup)
         print(message.text)
         bot.register_next_step_handler(sent, get_category)
     elif inout.lower() == 'in':
         start_markup = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
-        start_markup.row('Salary', 'Reimbursement', 'Refund')
-        start_markup.row('Parents', 'Gifts', 'Topup')
+        start_markup.row('Spotify', 'Erdis', 'Online')
+        start_markup.row('Jobs', 'Gifts', 'Others')
         sent = bot.send_message(message.chat.id, "Choose a category", reply_markup=start_markup)
         print(message.text)
         bot.register_next_step_handler(sent, get_category)
@@ -170,26 +170,23 @@ def update_sheet(message):
 # Handle '/start' and '/help'
 @bot.message_handler(commands=['help', 'start'])
 def send_welcome(message):
-    if UserCheck(message) == True:
-        bot.reply_to(message, """\
-            Hi there, I am your Finance bot.
+    if UserCheck(message):
+        bot.reply_to(message, "Welcome {}".format(message.from_user.first_name) + """\n
         I am here to keep track of your income and expenses. Use the command /add to upload a record!\
         """)
     else:
         pass
 
 
-@bot.message_handler(commands=['categories', 'Categories'])
-def kill_bot(message):
-    markup = telebot.types.ReplyKeyboardMarkup()
-    add_expense = telebot.types.KeyboardButton('add_expense')
-    add_income = telebot.types.KeyboardButton('add_income')
-    c = telebot.types.KeyboardButton('c')
-    d = telebot.types.KeyboardButton('d')
-    e = telebot.types.KeyboardButton('e')
-    markup.row(add_expense, add_income)
-    markup.row(c, d, e)
-    bot.reply_to(message, "Choose one letter:", reply_markup=markup)
+@bot.message_handler(commands=['add'])
+def add_record(message):
+    if UserCheck(message):
+        start_markup = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
+        start_markup.row('In', 'Out')
+        sent = bot.send_message(message.chat.id, "Money In or Out? ", reply_markup=start_markup)
+        bot.register_next_step_handler(sent, get_inout)
+    else:
+        pass
 
 
 # def kill_bot(message):
