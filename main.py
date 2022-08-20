@@ -7,10 +7,10 @@ import gspread
 import telebot
 from datetime import datetime
 
-API_TOKEN = ''
+API_TOKEN = '5553891118:AAGaV6wLx6JmPQmh7q9oi62bMj3d3EbM0Ek'
 bot = telebot.TeleBot(API_TOKEN)
 user = bot.get_me()
-TelegramUsers = []
+TelegramUsers = [427863788]
 
 scopes = [
     'https://www.googleapis.com/auth/spreadsheets',
