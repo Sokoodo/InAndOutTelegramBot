@@ -33,7 +33,6 @@ def today_date():
 
 def get_inout(message):
     inout = message.text
-    print("In or Out: ", inout)
     record_dict["in or out"] = inout
     if inout.lower() == 'out':
         start_markup = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
@@ -41,72 +40,58 @@ def get_inout(message):
         start_markup.row('Subscriptions', 'HairDresser', 'UniTax', 'Clothing')
         start_markup.row('Travel', 'Transportation', 'Others')
         sent = bot.send_message(message.chat.id, "Choose a category", reply_markup=start_markup)
-        print(message.text)
         bot.register_next_step_handler(sent, get_category)
     elif inout.lower() == 'in':
         start_markup = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
         start_markup.row('Spotify', 'Erdis', 'Online')
         start_markup.row('Jobs', 'Gifts', 'Others')
         sent = bot.send_message(message.chat.id, "Choose a category", reply_markup=start_markup)
-        print(message.text)
         bot.register_next_step_handler(sent, get_category)
 
 
 def get_inout_remove(message):
     inout = message.text
-    print("In or Out: ", inout)
     record_dict["in or out"] = inout
+    record_dict["Category"] = ''
+    record_dict["Date"] = ''
+    record_dict["Amount"] = ''
+    record_dict["Description"] = ''
+    datee = today_date()
     if inout.lower() == 'out':
         worksheet = sheet.worksheet("Transactions")  # get Transactions worksheet of the Spreadsheet
         cell = worksheet.find("Category out")
-        record_dict["Category"] = ''
-        record_dict["Date"] = ''
-        record_dict["Amount"] = ''
-        record_dict["Description"] = ''
         upload_data(worksheet, cell, remove=True)
-        datee = today_date()  # reset today date just to check the month
-        record_dict["Date"] = datee
+        record_dict["Date"] = datee  # reset today date just to check the month
         mthcheck = month_check()
         for x in months_dict:
             if x == mthcheck:
-                print(months_dict[x])
                 worksheet = sheet.worksheet(months_dict[x])
                 cell = worksheet.find("Category out")
                 record_dict["Date"] = ''
                 upload_data(worksheet, cell, remove=True)
-                print("Data Uploaded to {}".format(months_dict[x]))
                 break
             else:
                 continue
-        bot.send_message(message.chat.id, "Updated, you can /add another line or /removeLast")
     elif inout.lower() == 'in':
         worksheet = sheet.worksheet("Transactions")  # get Transactions worksheet of the Spreadsheet
         cell = worksheet.find("Category in")
-        record_dict["Category"] = ''
-        record_dict["Date"] = ''
-        record_dict["Amount"] = ''
-        record_dict["Description"] = ''
         upload_data(worksheet, cell, remove=True)
-        datee = today_date()  # reset today date just to check the month
-        record_dict["Date"] = datee
+        record_dict["Date"] = datee  # reset today date just to check the month
         mthcheck = month_check()
         for x in months_dict:
             if x == mthcheck:
-                print(months_dict[x])
                 worksheet = sheet.worksheet(months_dict[x])
                 cell = worksheet.find("Category in")
                 record_dict["Date"] = ''
                 upload_data(worksheet, cell, remove=True)
-                print("Data Uploaded to {}".format(months_dict[x]))
                 break
             else:
                 continue
-        bot.send_message(message.chat.id, "Updated, you can /add another line or /removeLast")
+    bot.send_message(message.chat.id, "Updated, you can /add another line or /removeLast")
 
 
 def get_category(message):
     category = message.text
-    print("Category: ", category)
     record_dict["Category"] = category
     start_markup = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
     start_markup.row('Today')
@@ -121,7 +106,6 @@ def get_date(message):
     else:
         datee = message.text
         record_dict["Date"] = datee
-    print("Date: ", datee)
     sent = bot.send_message(message.chat.id, "Amount?")
     bot.register_next_step_handler(sent, get_amt)
 
@@ -129,7 +113,6 @@ def get_date(message):
 def get_amt(message):
     amt = message.text
     record_dict["Amount"] = amt
-    print(amt)
     sent = bot.send_message(message.chat.id, "Description?")
     bot.register_next_step_handler(sent, get_description)
 
@@ -137,19 +120,16 @@ def get_amt(message):
 def get_description(message):
     desc = message.text
     record_dict["Description"] = desc
-    print(desc)
-    print(record_dict)
     bot.send_message(message.chat.id, "Updating...")
     update_sheet(message)
 
 
 # Checks if User is Authorized or not
-def UserCheck(message):
+def user_check(message):
     if message.from_user.id in TelegramUsers:
         return True
     else:
         bot.reply_to(message, "Unauthorized User")
-        print(message.from_user.id)
         return False
 
 
@@ -160,34 +140,15 @@ def month_check():
     return y
 
 
-def remove_last(worksheet, cell):
-    cell_row = cell.row + 1
-    cell_col = cell.col
-    cell_val = worksheet.cell(cell_row, cell_col).value
-    print(cell_val)
-    while cell_val is not None:
-        cell_row = cell_row + 1
-        print(cell_row)
-        cell_val = worksheet.cell(cell_row, cell_col).value
-    cell_row = cell_row - 1
-    worksheet.update_cell(cell_row, cell_col, '')
-    worksheet.update_cell(cell_row, cell_col - 1, '')
-    worksheet.update_cell(cell_row, cell_col - 2, '')
-    worksheet.update_cell(cell_row, cell_col - 3, '')
-
-
 def upload_data(worksheet, cell, remove):
     cell_row = cell.row + 1
     cell_col = cell.col
     cell_val = worksheet.cell(cell_row, cell_col).value
-    print(cell_val)
     while cell_val is not None:
         cell_row = cell_row + 1
-        print(cell_row)
         cell_val = worksheet.cell(cell_row, cell_col).value
     if remove:
         cell_row = cell_row - 1
-    print("Row {} is None".format(cell_row))
     worksheet.update_cell(cell_row, cell_col, record_dict['Category'])
     worksheet.update_cell(cell_row, cell_col - 1, record_dict['Description'])
     worksheet.update_cell(cell_row, cell_col - 2, record_dict['Amount'])
@@ -202,16 +163,13 @@ def update_sheet(message):
         mthcheck = month_check()
         for x in months_dict:
             if x == mthcheck:
-                print(months_dict[x])
                 worksheet = sheet.worksheet(months_dict[x])
                 cell = worksheet.find("Category out")
                 upload_data(worksheet, cell, remove=False)
-                print("Data Uploaded to {}".format(months_dict[x]))
                 break
             else:
                 continue
         bot.send_message(message.chat.id, "Updated, you can /add another line or /removeLast")
-
     elif (record_dict["in or out"]) == "In":
         worksheet = sheet.worksheet("Transactions")  # get Transactions worksheet of the Spreadsheet
         cell = worksheet.find("Category in")
@@ -219,33 +177,46 @@ def update_sheet(message):
         mthcheck = month_check()
         for x in months_dict:
             if x == mthcheck:
-                print(months_dict[x])
                 worksheet = sheet.worksheet(months_dict[x])
                 cell = worksheet.find("Category in")
                 upload_data(worksheet, cell, remove=False)
-                print("Data Uploaded to {}".format(months_dict[x]))
                 break
             else:
                 continue
         bot.send_message(message.chat.id, "Updated, you can /add another line or /removeLast")
 
-    print(record_dict)
+
+def get_month_amount(type):
+    record_dict["Date"] = today_date()
+    mthcheck = month_check()
+    for x in months_dict:
+        if x == mthcheck:
+            worksheet = sheet.worksheet(months_dict[x])
+            if type == 'monthExpenses':
+                cell = worksheet.find("Total Out")
+                return worksheet.cell(cell.row + 2, cell.col).value
+            elif type == 'monthIncome':
+                cell = worksheet.find("Total In")
+                return worksheet.cell(cell.row + 2, cell.col).value
 
 
 # Handle '/start' and '/help'
 @bot.message_handler(commands=['help', 'start'])
 def send_welcome(message):
-    if UserCheck(message):
+    if user_check(message):
         bot.reply_to(message, "Welcome {}".format(message.from_user.first_name) +
-                     "\nI am here to keep track of your income and expenses. Use the command /add to upload a record "
-                     "and command /removeLast to remove the last record")
+                     "\nI am here to keep track of your income and expenses. Use one of the following commands:\n"
+                     "/add to upload a record\n"
+                     "/removeLast to remove the last record\n"
+                     "/monthExpenses to see current month expenses\n"
+                     "/monthIncome to see current month income")
     else:
         pass
 
 
 @bot.message_handler(commands=['add'])
 def add_record(message):
-    if UserCheck(message):
+    if user_check(message):
         start_markup = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
         start_markup.row('In', 'Out')
         sent = bot.send_message(message.chat.id, "Money In or Out? ", reply_markup=start_markup)
@@ -256,11 +227,29 @@ def add_record(message):
 
 @bot.message_handler(commands=['removeLast'])
 def remove_last_line(message):
-    if UserCheck(message):
+    if user_check(message):
         start_markup = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
         start_markup.row('In', 'Out')
         sent = bot.send_message(message.chat.id, "Remove last In or last Out? ", reply_markup=start_markup)
         bot.register_next_step_handler(sent, get_inout_remove)
+    else:
+        pass
+
+
+@bot.message_handler(commands=['monthExpenses'])
+def check_month_expenses(message):
+    if user_check(message):
+        total_expenses = get_month_amount('monthExpenses')
+        bot.reply_to(message, total_expenses)
+    else:
+        pass
+
+
+@bot.message_handler(commands=['monthIncome'])
+def check_month_income(message):
+    if user_check(message):
+        total_income = get_month_amount('monthIncome')
+        bot.reply_to(message, total_income)
     else:
         pass
 
