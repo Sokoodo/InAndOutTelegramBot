@@ -186,18 +186,24 @@ def update_sheet(message):
         bot.send_message(message.chat.id, "Updated, you can /add another line or /removeLast")
 
 
-def get_month_amount(type):
-    record_dict["Date"] = today_date()
-    mthcheck = month_check()
-    for x in months_dict:
-        if x == mthcheck:
-            worksheet = sheet.worksheet(months_dict[x])
-            if type == 'monthExpenses':
-                cell = worksheet.find("Total Out")
-                return worksheet.cell(cell.row + 2, cell.col).value
-            elif type == 'monthIncome':
-                cell = worksheet.find("Total In")
-                return worksheet.cell(cell.row + 2, cell.col).value
+def get_month_resume(message):
+    worksheet = sheet.worksheet(message.text)
+    cell_out = worksheet.find("Total Out")
+    cell_in = worksheet.find("Total In")
+    str_resume = 'MONTH RESUME\n\nTotal Out: \n' + worksheet.cell(cell_out.row + 2,
+                                                                  cell_out.col).value + '\n\nTotal In: \n' + worksheet.cell(
+        cell_in.row + 2, cell_in.col).value
+    bot.reply_to(message, str_resume)
+
+
+def get_year_resume():
+    worksheet = sheet.worksheet('2022 Summary')
+    cell_out = worksheet.find("Total Out")
+    cell_in = worksheet.find("Total In")
+    str_resume = 'YEAR RESUME\n\nTotal Out: \n' + worksheet.cell(cell_out.row + 2,
+                                                                 cell_out.col).value + '\n\nTotal In: \n' + worksheet.cell(
+        cell_in.row + 2, cell_in.col).value
+    return str_resume
 
 
 # Handle '/start' and '/help'
@@ -208,8 +214,8 @@ def send_welcome(message):
                      "\nI am here to keep track of your income and expenses. Use one of the following commands:\n"
                      "/add to upload a record\n"
                      "/removeLast to remove the last record\n"
-                     "/monthExpenses to see current month expenses\n"
-                     "/monthIncome to see current month income")
+                     "/monthResume to see current month resume\n"
+                     "/yearResume to see your year resume")
     else:
         pass
 
@@ -236,20 +242,24 @@ def remove_last_line(message):
         pass
 
 
-@bot.message_handler(commands=['monthExpenses'])
-def check_month_expenses(message):
+@bot.message_handler(commands=['monthResume'])
+def check_month_resume(message):
     if user_check(message):
-        total_expenses = get_month_amount('monthExpenses')
-        bot.reply_to(message, total_expenses)
+        start_markup = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
+        start_markup.row('Jan', 'Feb', 'Mar', 'Apr')
+        start_markup.row('May', 'Jun', 'Jul', 'Aug')
+        start_markup.row('Sept', 'Oct', 'Nov', 'Dec')
+        sent = bot.send_message(message.chat.id, "Choose a category", reply_markup=start_markup)
+        bot.register_next_step_handler(sent, get_month_resume)
     else:
         pass
 
 
-@bot.message_handler(commands=['monthIncome'])
-def check_month_income(message):
+@bot.message_handler(commands=['yearResume'])
+def check_year_resume(message):
     if user_check(message):
-        total_income = get_month_amount('monthIncome')
-        bot.reply_to(message, total_income)
+        total_year = get_year_resume()
+        bot.reply_to(message, total_year)
     else:
         pass
 
