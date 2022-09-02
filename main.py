@@ -1,7 +1,3 @@
-#!/usr/bin/python
-
-# This is a simple echo bot using the decorator mechanism.
-# It echoes any incoming text messages.
 from oauth2client.service_account import ServiceAccountCredentials
 import gspread
 import telebot
@@ -87,7 +83,7 @@ def get_inout_remove(message):
                 break
             else:
                 continue
-    bot.send_message(message.chat.id, "Updated, you can /add another line or /removeLast")
+    bot.send_message(message.chat.id, "Updated, \n/add another transaction\n/monthResume\n/yearResume")
 
 
 def get_category(message):
@@ -169,7 +165,8 @@ def update_sheet(message):
                 break
             else:
                 continue
-        bot.send_message(message.chat.id, "Updated, you can /add another line or /removeLast")
+        bot.send_message(message.chat.id,
+                         "Updated, \n/add another transaction\n/removeLast transaction\n/monthResume\n/yearResume")
     elif (record_dict["in or out"]) == "In":
         worksheet = sheet.worksheet("Transactions")  # get Transactions worksheet of the Spreadsheet
         cell = worksheet.find("Category in")
@@ -183,7 +180,8 @@ def update_sheet(message):
                 break
             else:
                 continue
-        bot.send_message(message.chat.id, "Updated, you can /add another line or /removeLast")
+        bot.send_message(message.chat.id,
+                         "Updated, \n/add another transaction\n/removeLast transaction\n/monthResume\n/yearResume")
 
 
 def get_month_resume(message):
@@ -251,6 +249,7 @@ def check_month_resume(message):
         start_markup.row('Sept', 'Oct', 'Nov', 'Dec')
         sent = bot.send_message(message.chat.id, "Choose a category", reply_markup=start_markup)
         bot.register_next_step_handler(sent, get_month_resume)
+        bot.send_message(message.chat.id, "What do you want to do now?\n/yearResume\n/add\n/help")
     else:
         pass
 
@@ -260,6 +259,7 @@ def check_year_resume(message):
     if user_check(message):
         total_year = get_year_resume()
         bot.reply_to(message, total_year)
+        bot.send_message(message.chat.id, "What do you want to do now?\n/monthResume\n/add\n/help")
     else:
         pass
 
@@ -273,7 +273,7 @@ def echo_message(message):
     elif message.text == 'fine':
         bot.reply_to(message, 'Nice, me too!')
     else:
-        bot.reply_to(message, 'I don\'t know what to do, try with /help or /add.')
+        bot.reply_to(message, 'I don\'t know what to do, try with /help.')
 
 
 bot.infinity_polling()
